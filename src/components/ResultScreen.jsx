@@ -2,10 +2,21 @@ import React, { useState } from 'react';
 import { books, bookOrder } from '../data/books';
 import RadarChart from './RadarChart';
 
+function encodeScores(scores) {
+  return bookOrder.map((key) => scores[key] ?? 0).join('.');
+}
+
+function buildShareUrl(scores) {
+  if (typeof window === 'undefined') return '';
+  const url = new URL(window.location.href);
+  url.search = '';
+  url.searchParams.set('r', encodeScores(scores));
+  return url.toString();
+}
+
 function ScoreBar({ bookKey, score, maxScore }) {
   const book = books[bookKey];
   const pct = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
-
   return (
     <div className="score-row">
       <span className="score-label">{book.title}</span>
@@ -23,33 +34,39 @@ function ScoreBar({ bookKey, score, maxScore }) {
   );
 }
 
-function ShareButton({ book }) {
+function ShareButton({ book, scores }) {
   const [state, setState] = useState('idle');
 
   async function handleShare() {
+    const shareUrl = buildShareUrl(scores);
     const firstSentence = book.matchReason.split('. ')[0] + '.';
-    const text = `I got "${book.title}" on the Culture novel quiz.\n\n"${firstSentence}"\n\nWhich Culture novel are you?`;
+    const text = `I got "${book.title}" on the Culture novel quiz.\n\n"${firstSentence}"\n\nSee my full result here:`;
 
     if (navigator.share) {
       try {
-        await navigator.share({ text });
+        await navigator.share({
+          title: 'My Culture novel result',
+          text,
+          url: shareUrl,
+        });
       } catch {
         // user cancelled
       }
-    } else {
-      try {
-        await navigator.clipboard.writeText(text);
-        setState('copied');
-        setTimeout(() => setState('idle'), 2000);
-      } catch {
-        // clipboard unavailable
-      }
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(`${text}\n${shareUrl}`);
+      setState('copied');
+      setTimeout(() => setState('idle'), 2000);
+    } catch {
+      // clipboard unavailable
     }
   }
 
   return (
     <button className="btn-share" onClick={handleShare}>
-      {state === 'copied' ? 'Copied to clipboard' : 'Share result'}
+      {state === 'copied' ? 'Link copied' : 'Share result'}
     </button>
   );
 }
@@ -100,7 +117,7 @@ export default function ResultScreen({ scores, topResult, onRestart }) {
         </div>
 
         <div className="result-actions">
-          <ShareButton book={book} />
+          <ShareButton book={book} scores={scores} />
           <button className="btn-secondary" onClick={onRestart}>
             Take it again
           </button>
