@@ -12,24 +12,33 @@ function decodeScoresFromUrl() {
   const encoded = params.get('r');
   if (!encoded) return null;
 
-  const parts = encoded.split('.');
-  if (parts.length !== bookOrder.length) return null;
+  const pairs = encoded.split(',');
+  if (!pairs.length) return null;
 
-  const decoded = {};
-  for (let i = 0; i < bookOrder.length; i += 1) {
-    const value = Number(parts[i]);
-    if (!Number.isFinite(value) || value < 0) return null;
-    decoded[bookOrder[i]] = value;
+  const decoded = initialScores();
+  let foundAtLeastOne = false;
+
+  for (const pair of pairs) {
+    const [key, rawValue] = pair.split(':');
+    if (!key || rawValue == null) continue;
+    if (!bookOrder.includes(key)) continue;
+
+    const value = Number(rawValue);
+    if (!Number.isFinite(value) || value < 0) continue;
+
+    decoded[key] = value;
+    foundAtLeastOne = true;
   }
 
-  return decoded;
+  return foundAtLeastOne ? decoded : null;
 }
 
 function clearSharedResultUrl() {
   if (typeof window === 'undefined') return;
+
   const url = new URL(window.location.href);
   url.searchParams.delete('r');
-  window.history.replaceState({}, '', url.pathname);
+  window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
 }
 
 export function useQuiz() {
@@ -54,11 +63,13 @@ export function useQuiz() {
 
   function selectAnswer(weights) {
     const newScores = { ...scores };
+
     Object.entries(weights).forEach(([key, val]) => {
       if (newScores[key] !== undefined) {
         newScores[key] += val;
       }
     });
+
     setScores(newScores);
 
     const nextIndex = currentIndex + 1;
