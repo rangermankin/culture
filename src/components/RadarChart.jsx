@@ -47,7 +47,7 @@ const SECTIONS = [
     books: ['ex', 'mat'],
     fill: '#ECF7F2',
     stroke: '#5A9A50',
-    label: { x: 40, y: 112, anchor: 'middle' },
+    label: { x: 30, y: 130, anchor: 'middle' },
   },
 ];
 
