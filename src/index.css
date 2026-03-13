@@ -402,6 +402,19 @@ body::before {
   gap: 10px;
 }
 
+.result-radar-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.result-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
 .score-row {
   display: grid;
   grid-template-columns: 180px 1fr 32px;
