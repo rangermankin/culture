@@ -100,4 +100,4 @@ export const books = {
   },
 };
 
-export const bookOrder = ['cp', 'pg', 'uw', 'ex', 'inv', 'ltw', 'mat', 'sd', 'ths'];
+export const bookOrder = ['pg', 'uw', 'ltw', 'ths', 'cp', 'inv', 'sd', 'ex', 'mat'];

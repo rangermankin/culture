@@ -15,6 +15,16 @@ const LABELS = {
   ths: ['Transcendence', ''],
 };
 
+// Quadrant groupings
+// div: fractional axis index of the leading divider line
+// mid: fractional axis index of the quadrant label midpoint
+const QUADRANTS = [
+  { label: 'Self',      sub: 'The examined individual',          div: -0.5, mid: 0.5 },
+  { label: 'Legacy',    sub: 'Time, endings, what persists',     div:  1.5, mid: 2.5 },
+  { label: 'Ethics',    sub: 'Power, agency, consequence',       div:  3.5, mid: 5.0 },
+  { label: 'Encounter', sub: 'The unknown, the vast, the other', div:  6.5, mid: 7.5 },
+];
+
 // Precompute the theoretical max score per book
 // (sum, across all questions, of the highest weight that book gets in any single answer)
 const MAX_SCORES = (() => {
@@ -40,13 +50,15 @@ const MAX_SCORES = (() => {
 const SCALE_FACTOR = 0.55;
 
 const N = bookOrder.length; // 9
-const CX = 165;
-const CY = 160;
-const R = 95; // radius of chart area
-const LABEL_R = R + 32; // where labels sit
+const CX = 180;
+const CY = 180;
+const R = 95;        // radius of chart area
+const LABEL_R = 127; // where axis labels sit
+const DIV_R = 145;   // quadrant divider lines extend to here
+const QUAD_R = 158;  // quadrant category labels sit here
 
 function angle(i) {
-  // Start from top (−π/2), go clockwise
+  // Start from top (−π/2), go clockwise; accepts fractional indices
   return -Math.PI / 2 + (i * 2 * Math.PI) / N;
 }
 
@@ -77,6 +89,14 @@ function textAnchor(i) {
   return 'middle';
 }
 
+// Inward-facing anchor for quadrant labels at large radius to prevent overflow
+function quadTextAnchor(fi) {
+  const cos = Math.cos(angle(fi));
+  if (cos > 0.15) return 'end';
+  if (cos < -0.15) return 'start';
+  return 'middle';
+}
+
 export default function RadarChart({ scores }) {
   const filled = useMemo(() => polygonPoints(scores), [scores]);
   const hasAnyScore = bookOrder.some((k) => scores[k] > 0);
@@ -85,10 +105,27 @@ export default function RadarChart({ scores }) {
     <div className="radar-wrap">
       <p className="radar-heading">Personality map</p>
       <svg
-        viewBox="0 0 330 320"
+        viewBox="0 0 360 360"
         className="radar-svg"
         aria-label="Radar chart showing personality scores across 9 Culture novels"
       >
+        {/* Quadrant divider lines — from center, past outer ring and axis labels */}
+        {QUADRANTS.map((q) => {
+          const [x2, y2] = polarToXY(DIV_R, q.div);
+          return (
+            <line
+              key={`qdiv-${q.label}`}
+              x1={CX}
+              y1={CY}
+              x2={x2}
+              y2={y2}
+              stroke="var(--border)"
+              strokeWidth={1.5}
+              opacity={0.7}
+            />
+          );
+        })}
+
         {/* Grid rings */}
         {[0.25, 0.5, 0.75, 1].map((ratio) => (
           <polygon
@@ -153,9 +190,7 @@ export default function RadarChart({ scores }) {
           const [lx, ly] = polarToXY(LABEL_R, i);
           const anchor = textAnchor(i);
           const lines = LABELS[key];
-          const a = angle(i);
           const lineH = 13;
-          // Vertical centering: shift up if both lines present
           const baseY = lines[1] ? ly - lineH / 2 : ly;
 
           return (
@@ -174,6 +209,26 @@ export default function RadarChart({ scores }) {
               {lines[1] && (
                 <tspan x={lx} dy={lineH}>{lines[1]}</tspan>
               )}
+            </text>
+          );
+        })}
+
+        {/* Quadrant category labels */}
+        {QUADRANTS.map((q) => {
+          const [lx, ly] = polarToXY(QUAD_R, q.mid);
+          const anchor = quadTextAnchor(q.mid);
+          return (
+            <text
+              key={`qlabel-${q.label}`}
+              x={lx}
+              y={ly}
+              textAnchor={anchor}
+              dominantBaseline="middle"
+              fontFamily="var(--font-body)"
+              fill="var(--text-secondary)"
+            >
+              <tspan x={lx} dy="-5" fontSize="9" fontWeight="600">{q.label}</tspan>
+              <tspan x={lx} dy="13" fontSize="7.5" opacity="0.7">{q.sub}</tspan>
             </text>
           );
         })}
