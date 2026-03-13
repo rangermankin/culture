@@ -375,7 +375,9 @@ body::before {
   line-height: 1.7;
   color: var(--text-primary);
 }
-
+.result-radar-section {
+  width: 100%;
+}
 /* ─── Score Chart ────────────────────────────────────────────────────── */
 .scores-section {
   background: var(--bg-card);
