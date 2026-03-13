@@ -20,34 +20,34 @@ const SECTIONS = [
   {
     key: 'self',
     title: 'Self',
-    subtitle: 'The examined individual',
     books: ['pg', 'uw'],
     fill: '#EDF3FC',
     stroke: '#3A6FBF',
+    label: { x: 260, y: 58, anchor: 'middle' },
   },
   {
     key: 'legacy',
     title: 'Legacy',
-    subtitle: 'Time, endings, what persists',
     books: ['ltw', 'ths'],
     fill: '#F1EEF9',
     stroke: '#7A5AAF',
+    label: { x: 338, y: 205, anchor: 'middle' },
   },
   {
     key: 'ethics',
     title: 'Ethics',
-    subtitle: 'Power, agency, consequence',
     books: ['cp', 'inv', 'sd'],
     fill: '#FBEFE8',
     stroke: '#C25B3A',
+    label: { x: 145, y: 336, anchor: 'middle' },
   },
   {
     key: 'encounter',
     title: 'Encounter',
-    subtitle: 'The unknown, the vast, the other',
     books: ['ex', 'mat'],
     fill: '#ECF7F2',
     stroke: '#5A9A50',
+    label: { x: 74, y: 112, anchor: 'middle' },
   },
 ];
 
@@ -75,7 +75,6 @@ const CX = 190;
 const CY = 180;
 const R = 105;
 const LABEL_R = R + 12;
-const SECTION_LABEL_R = R + 92;
 
 function angle(i) {
   return -Math.PI / 2 + (i * 2 * Math.PI) / N;
@@ -131,14 +130,6 @@ function sectionPath(startIndex, endIndex) {
   ].join(' ');
 }
 
-function sectionLabelPosition(startIndex, endIndex) {
-  const startAngle = angle(startIndex) - Math.PI / N;
-  const endAngle = angle(endIndex) + Math.PI / N;
-  const midAngle = (startAngle + endAngle) / 2;
-  const [x, y] = polarToXYAngle(SECTION_LABEL_R, midAngle);
-  return { x, y, midAngle };
-}
-
 export default function RadarChart({ scores }) {
   const filled = useMemo(() => polygonPoints(scores), [scores]);
   const hasAnyScore = AXIS_ORDER.some((k) => (scores[k] || 0) > 0);
@@ -152,7 +143,6 @@ export default function RadarChart({ scores }) {
         startIndex,
         endIndex,
         path: sectionPath(startIndex, endIndex),
-        labelPos: sectionLabelPosition(startIndex, endIndex),
       };
     });
   }, []);
@@ -273,40 +263,21 @@ export default function RadarChart({ scores }) {
           );
         })}
 
-        {sectionMeta.map((section) => {
-          const { x, y, midAngle } = section.labelPos;
-          const anchor = textAnchorForAngle(midAngle);
-
-          return (
-            <text
-              key={`${section.key}-label`}
-              x={x}
-              y={y}
-              textAnchor={anchor}
-              fontFamily="var(--font-body)"
-              dominantBaseline="middle"
-            >
-              <tspan
-                x={x}
-                dy="0"
-                fontSize="24"
-                fontWeight="700"
-                fill={section.stroke}
-              >
-                {section.title}
-              </tspan>
-              <tspan
-                x={x}
-                dy="24"
-                fontSize="19"
-                fontWeight="500"
-                fill="var(--text-muted)"
-              >
-                {section.subtitle}
-              </tspan>
-            </text>
-          );
-        })}
+        {sectionMeta.map((section) => (
+          <text
+            key={`${section.key}-label`}
+            x={section.label.x}
+            y={section.label.y}
+            textAnchor={section.label.anchor}
+            fontFamily="var(--font-body)"
+            dominantBaseline="middle"
+            fontSize="24"
+            fontWeight="700"
+            fill={section.stroke}
+          >
+            {section.title}
+          </text>
+        ))}
       </svg>
     </div>
   );
