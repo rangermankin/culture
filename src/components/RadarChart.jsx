@@ -108,12 +108,20 @@ function textAnchor(i) {
   return 'middle';
 }
 
-// Inward-facing anchor for quadrant labels at large radius to prevent overflow
+// Anchor for quadrant labels: near-vertical quadrants use inward-facing so the
+// text centres above/below the chart; near-horizontal quadrants use outward-facing
+// so the text extends to the side and doesn't overlap the chart body.
 function quadTextAnchor(fi) {
-  const cos = Math.cos(angle(fi));
-  if (cos > 0.15) return 'end';
-  if (cos < -0.15) return 'start';
-  return 'middle';
+  const a = angle(fi);
+  const cos = Math.cos(a);
+  const sin = Math.sin(a);
+  if (Math.abs(sin) > Math.abs(cos)) {
+    // More vertical — inward centres text above/below
+    return cos > 0 ? 'end' : 'start';
+  } else {
+    // More horizontal — outward avoids overlapping the chart
+    return cos > 0 ? 'start' : 'end';
+  }
 }
 
 export default function RadarChart({ scores }) {
@@ -124,7 +132,7 @@ export default function RadarChart({ scores }) {
     <div className="radar-wrap">
       <p className="radar-heading">Personality map</p>
       <svg
-        viewBox="0 0 360 360"
+        viewBox="-205 -15 725 385"
         className="radar-svg"
         aria-label="Radar chart showing personality scores across 9 Culture novels"
       >
@@ -151,8 +159,10 @@ export default function RadarChart({ scores }) {
             key={`qfill-${q.label}`}
             points={quadrantPolygonPoints(scores, q.axes)}
             fill={q.color}
-            fillOpacity={0.22}
-            stroke="none"
+            fillOpacity={0.40}
+            stroke={q.color}
+            strokeWidth={1.5}
+            strokeOpacity={0.5}
           />
         ))}
 

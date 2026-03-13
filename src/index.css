@@ -467,7 +467,7 @@ body::before {
 
 .radar-svg {
   width: 100%;
-  max-width: 330px;
+  max-width: 680px;
   height: auto;
   overflow: visible;
 }
