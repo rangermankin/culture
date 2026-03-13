@@ -31,7 +31,7 @@ const SECTIONS = [
     books: ['ltw', 'ths'],
     fill: '#F1EEF9',
     stroke: '#7A5AAF',
-    label: { x: 338, y: 205, anchor: 'middle' },
+    label: { x: 356, y: 205, anchor: 'middle' },
   },
   {
     key: 'ethics',
@@ -47,7 +47,7 @@ const SECTIONS = [
     books: ['ex', 'mat'],
     fill: '#ECF7F2',
     stroke: '#5A9A50',
-    label: { x: 74, y: 112, anchor: 'middle' },
+    label: { x: 54, y: 112, anchor: 'middle' },
   },
 ];
 
