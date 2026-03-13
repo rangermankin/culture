@@ -5,10 +5,39 @@ import { bookOrder } from '../data/books';
 const initialScores = () =>
   Object.fromEntries(bookOrder.map((key) => [key, 0]));
 
+function decodeScoresFromUrl() {
+  if (typeof window === 'undefined') return null;
+
+  const params = new URLSearchParams(window.location.search);
+  const encoded = params.get('r');
+  if (!encoded) return null;
+
+  const parts = encoded.split('.');
+  if (parts.length !== bookOrder.length) return null;
+
+  const decoded = {};
+  for (let i = 0; i < bookOrder.length; i += 1) {
+    const value = Number(parts[i]);
+    if (!Number.isFinite(value) || value < 0) return null;
+    decoded[bookOrder[i]] = value;
+  }
+
+  return decoded;
+}
+
+function clearSharedResultUrl() {
+  if (typeof window === 'undefined') return;
+  const url = new URL(window.location.href);
+  url.searchParams.delete('r');
+  window.history.replaceState({}, '', url.pathname);
+}
+
 export function useQuiz() {
-  const [phase, setPhase] = useState('start'); // 'start' | 'quiz' | 'result'
+  const sharedScores = decodeScoresFromUrl();
+
+  const [phase, setPhase] = useState(sharedScores ? 'result' : 'start');
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [scores, setScores] = useState(initialScores);
+  const [scores, setScores] = useState(sharedScores || initialScores);
 
   const topResult = useMemo(() => {
     return bookOrder.reduce((best, key) =>
@@ -17,6 +46,9 @@ export function useQuiz() {
   }, [scores]);
 
   function startQuiz() {
+    clearSharedResultUrl();
+    setScores(initialScores());
+    setCurrentIndex(0);
     setPhase('quiz');
   }
 
@@ -39,6 +71,7 @@ export function useQuiz() {
   }
 
   function restart() {
+    clearSharedResultUrl();
     setPhase('start');
     setCurrentIndex(0);
     setScores(initialScores());
