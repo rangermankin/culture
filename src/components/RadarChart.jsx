@@ -5,15 +5,15 @@ import { questions } from '../data/questions';
 const AXIS_ORDER = ['pg', 'uw', 'ltw', 'ths', 'cp', 'inv', 'sd', 'ex', 'mat'];
 
 const LABELS = {
-  pg: ['Player of', 'Games'],
-  uw: ['Use of', 'Weapons'],
-  ltw: ['Look to', 'Windward'],
-  ths: ['Hydrogen', 'Sonata'],
-  cp: ['Consider', 'Phlebas'],
-  inv: ['Inversions', ''],
-  sd: ['Surface', 'Detail'],
-  ex: ['Excession', ''],
-  mat: ['Matter', ''],
+  pg: ['Mastery', ''],
+  uw: ['Identity', ''],
+  ltw: ['Memory', ''],
+  ths: ['Transcendence', ''],
+  cp: ['Pragmatism', ''],
+  inv: ['Influence', ''],
+  sd: ['Justice', ''],
+  ex: ['Wonder', ''],
+  mat: ['Growth', ''],
 };
 
 const SECTIONS = [
@@ -74,8 +74,8 @@ const N = AXIS_ORDER.length;
 const CX = 190;
 const CY = 180;
 const R = 105;
-const LABEL_R = R + 30;
-const SECTION_LABEL_R = R + 68;
+const LABEL_R = R + 12;
+const SECTION_LABEL_R = R + 92;
 
 function angle(i) {
   return -Math.PI / 2 + (i * 2 * Math.PI) / N;
@@ -165,7 +165,6 @@ export default function RadarChart({ scores }) {
         className="radar-svg"
         aria-label="Radar chart showing personality scores across 9 Culture novels"
       >
-        {/* Section backgrounds */}
         {sectionMeta.map((section) => (
           <path
             key={section.key}
@@ -177,7 +176,6 @@ export default function RadarChart({ scores }) {
           />
         ))}
 
-        {/* Grid rings */}
         {[0.25, 0.5, 0.75, 1].map((ratio) => (
           <polygon
             key={ratio}
@@ -189,7 +187,6 @@ export default function RadarChart({ scores }) {
           />
         ))}
 
-        {/* Axis spokes */}
         {AXIS_ORDER.map((_, i) => {
           const [x, y] = polarToXY(R, i);
           return (
@@ -206,7 +203,6 @@ export default function RadarChart({ scores }) {
           );
         })}
 
-        {/* Section boundary spokes */}
         {sectionMeta.map((section) => {
           const boundaryAngle = angle(section.startIndex) - Math.PI / N;
           const [x, y] = polarToXYAngle(R, boundaryAngle);
@@ -224,7 +220,6 @@ export default function RadarChart({ scores }) {
           );
         })}
 
-        {/* Filled score polygon */}
         {hasAnyScore && (
           <polygon
             points={filled}
@@ -236,7 +231,6 @@ export default function RadarChart({ scores }) {
           />
         )}
 
-        {/* Axis dots */}
         {AXIS_ORDER.map((key, i) => {
           const max = MAX_SCORES[key] || 1;
           const ratio = Math.min((scores[key] || 0) / max, 1);
@@ -254,7 +248,6 @@ export default function RadarChart({ scores }) {
           );
         })}
 
-        {/* Axis labels */}
         {AXIS_ORDER.map((key, i) => {
           const [lx, ly] = polarToXY(LABEL_R, i);
           const anchor = textAnchor(i);
@@ -280,7 +273,6 @@ export default function RadarChart({ scores }) {
           );
         })}
 
-        {/* Section labels */}
         {sectionMeta.map((section) => {
           const { x, y, midAngle } = section.labelPos;
           const anchor = textAnchorForAngle(midAngle);
@@ -297,7 +289,7 @@ export default function RadarChart({ scores }) {
               <tspan
                 x={x}
                 dy="0"
-                fontSize="12"
+                fontSize="24"
                 fontWeight="700"
                 fill={section.stroke}
               >
@@ -305,8 +297,8 @@ export default function RadarChart({ scores }) {
               </tspan>
               <tspan
                 x={x}
-                dy="14"
-                fontSize="9.5"
+                dy="24"
+                fontSize="19"
                 fontWeight="500"
                 fill="var(--text-muted)"
               >
