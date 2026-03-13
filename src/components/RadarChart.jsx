@@ -15,14 +15,21 @@ const LABELS = {
   ths: ['Transcendence', ''],
 };
 
+// Per-axis dx/dy offsets to avoid divider line overlap
+const LABEL_OFFSET = {
+  cp: [6, 5], // Pragmatism: nudge down-right, away from the Legacy/Ethics divider
+};
+
 // Quadrant groupings
 // div: fractional axis index of the leading divider line
 // mid: fractional axis index of the quadrant label midpoint
+// axes: integer indices into bookOrder belonging to this quadrant
+// color: used for both the label text and the polygon fill
 const QUADRANTS = [
-  { label: 'Self',      div: -0.5, mid: 0.5 },
-  { label: 'Legacy',    div:  1.5, mid: 2.5 },
-  { label: 'Ethics',    div:  3.5, mid: 5.0 },
-  { label: 'Encounter', div:  6.5, mid: 7.5 },
+  { label: 'Self',      div: -0.5, mid: 0.5, axes: [0, 1],    color: '#4880C8' },
+  { label: 'Legacy',    div:  1.5, mid: 2.5, axes: [2, 3],    color: '#5E9B78' },
+  { label: 'Ethics',    div:  3.5, mid: 5.0, axes: [4, 5, 6], color: '#C4543A' },
+  { label: 'Encounter', div:  6.5, mid: 7.5, axes: [7, 8],    color: '#8B62AB' },
 ];
 
 // Precompute the theoretical max score per book
@@ -67,6 +74,7 @@ function polarToXY(r, i) {
   return [CX + r * Math.cos(a), CY + r * Math.sin(a)];
 }
 
+// Full polygon outline (all 9 axes) — used for the neutral border stroke
 function polygonPoints(scores) {
   return bookOrder
     .map((key, i) => {
@@ -75,6 +83,17 @@ function polygonPoints(scores) {
       return polarToXY(ratio * R, i).join(',');
     })
     .join(' ');
+}
+
+// Center-anchored wedge polygon for a single quadrant
+function quadrantPolygonPoints(scores, axes) {
+  const pts = axes.map((i) => {
+    const key = bookOrder[i];
+    const max = (MAX_SCORES[key] || 1) * SCALE_FACTOR;
+    const ratio = Math.min(scores[key] / max, 1);
+    return polarToXY(ratio * R, i).join(',');
+  });
+  return [`${CX},${CY}`, ...pts].join(' ');
 }
 
 function gridPoints(ratio) {
@@ -126,6 +145,17 @@ export default function RadarChart({ scores }) {
           );
         })}
 
+        {/* Per-quadrant colored wedge fills */}
+        {hasAnyScore && QUADRANTS.map((q) => (
+          <polygon
+            key={`qfill-${q.label}`}
+            points={quadrantPolygonPoints(scores, q.axes)}
+            fill={q.color}
+            fillOpacity={0.22}
+            stroke="none"
+          />
+        ))}
+
         {/* Grid rings */}
         {[0.25, 0.5, 0.75, 1].map((ratio) => (
           <polygon
@@ -155,15 +185,15 @@ export default function RadarChart({ scores }) {
           );
         })}
 
-        {/* Filled score polygon */}
+        {/* Score polygon outline — shows complete shape over the colored fills */}
         {hasAnyScore && (
           <polygon
             points={filled}
-            fill="var(--accent-blue)"
-            fillOpacity={0.18}
-            stroke="var(--accent-blue)"
-            strokeWidth={2}
+            fill="none"
+            stroke="var(--border)"
+            strokeWidth={1.5}
             strokeLinejoin="round"
+            opacity={0.6}
           />
         )}
 
@@ -188,15 +218,16 @@ export default function RadarChart({ scores }) {
         {/* Axis labels */}
         {bookOrder.map((key, i) => {
           const [lx, ly] = polarToXY(LABEL_R, i);
+          const [dx, dy] = LABEL_OFFSET[key] || [0, 0];
           const anchor = textAnchor(i);
           const lines = LABELS[key];
           const lineH = 13;
-          const baseY = lines[1] ? ly - lineH / 2 : ly;
+          const baseY = lines[1] ? ly + dy - lineH / 2 : ly + dy;
 
           return (
             <text
               key={key}
-              x={lx}
+              x={lx + dx}
               y={baseY}
               textAnchor={anchor}
               dominantBaseline="middle"
@@ -205,9 +236,9 @@ export default function RadarChart({ scores }) {
               fill="var(--text-secondary)"
               fontWeight="500"
             >
-              <tspan x={lx} dy="0">{lines[0]}</tspan>
+              <tspan x={lx + dx} dy="0">{lines[0]}</tspan>
               {lines[1] && (
-                <tspan x={lx} dy={lineH}>{lines[1]}</tspan>
+                <tspan x={lx + dx} dy={lineH}>{lines[1]}</tspan>
               )}
             </text>
           );
@@ -224,10 +255,11 @@ export default function RadarChart({ scores }) {
               y={ly}
               textAnchor={anchor}
               dominantBaseline="middle"
-              fontSize="11"
+              fontSize="44"
               fontFamily="var(--font-body)"
-              fill="var(--text-secondary)"
+              fill={q.color}
               fontWeight="700"
+              opacity={0.85}
             >
               {q.label}
             </text>
