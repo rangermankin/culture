@@ -26,6 +26,7 @@ export default function App() {
           questionIndex={currentIndex}
           total={totalQuestions}
           onSelect={selectAnswer}
+          scores={scores}
         />
       )}
       {phase === 'result' && (

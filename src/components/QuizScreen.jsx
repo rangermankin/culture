@@ -1,4 +1,5 @@
 import React from 'react';
+import RadarChart from './RadarChart';
 
 function ProgressBar({ current, total }) {
   const pct = Math.round((current / total) * 100);
@@ -9,7 +10,7 @@ function ProgressBar({ current, total }) {
   );
 }
 
-export default function QuizScreen({ question, questionIndex, total, onSelect }) {
+export default function QuizScreen({ question, questionIndex, total, onSelect, scores }) {
   return (
     <div className="screen quiz-screen">
       <ProgressBar current={questionIndex} total={total} />
@@ -29,6 +30,7 @@ export default function QuizScreen({ question, questionIndex, total, onSelect })
             </button>
           ))}
         </div>
+        <RadarChart scores={scores} />
       </div>
     </div>
   );
