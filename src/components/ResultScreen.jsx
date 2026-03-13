@@ -1,56 +1,111 @@
-import React from 'react';
-import { bookOrder, books } from '../data/books';
+import React, { useState } from 'react';
+import { books, bookOrder } from '../data/books';
 import RadarChart from './RadarChart';
 
-export default function ResultScreen({ scores, restart }) {
-
-  const sorted = [...bookOrder]
-    .map((key) => ({
-      key,
-      title: books[key].title,
-      score: scores[key] || 0,
-    }))
-    .sort((a, b) => b.score - a.score);
-
-  const top = sorted[0];
+function ScoreBar({ bookKey, score, maxScore }) {
+  const book = books[bookKey];
+  const pct = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
 
   return (
-    <div className="result-screen">
-
-      <h2>Your Culture Novel Match</h2>
-
-      <div className="top-result">
-        <h3>{top.title}</h3>
-        <p className="result-score">
-          Score: {top.score}
-        </p>
+    <div className="score-row">
+      <span className="score-label">{book.title}</span>
+      <div className="score-track">
+        <div
+          className="score-fill"
+          style={{
+            width: `${pct}%`,
+            backgroundColor: book.accentColor,
+          }}
+        />
       </div>
+      <span className="score-value">{score}</span>
+    </div>
+  );
+}
 
-      <div className="result-list">
-        {sorted.map((item) => (
-          <div key={item.key} className="result-row">
-            <span className="result-title">
-              {item.title}
-            </span>
-            <span className="result-value">
-              {item.score}
-            </span>
+function ShareButton({ book }) {
+  const [state, setState] = useState('idle');
+
+  async function handleShare() {
+    const firstSentence = book.matchReason.split('. ')[0] + '.';
+    const text = `I got "${book.title}" on the Culture novel quiz.\n\n"${firstSentence}"\n\nWhich Culture novel are you?`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ text });
+      } catch {
+        // user cancelled
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(text);
+        setState('copied');
+        setTimeout(() => setState('idle'), 2000);
+      } catch {
+        // clipboard unavailable
+      }
+    }
+  }
+
+  return (
+    <button className="btn-share" onClick={handleShare}>
+      {state === 'copied' ? 'Copied to clipboard' : 'Share result'}
+    </button>
+  );
+}
+
+export default function ResultScreen({ scores, topResult, onRestart }) {
+  const book = books[topResult];
+  const sorted = [...bookOrder].sort((a, b) => scores[b] - scores[a]);
+  const maxScore = scores[sorted[0]];
+
+  return (
+    <div className="screen result-screen">
+      <div className="result-inner">
+        <div
+          className="result-card"
+          style={{
+            '--book-accent': book.accentColor,
+            '--book-light': book.accentLight,
+          }}
+        >
+          <div className="result-stripe" />
+          <div className="result-card-body">
+            <p className="result-label">Your result</p>
+            <h2 className="result-title">{book.title}</h2>
+            <p className="result-year">{book.year}</p>
+            <p className="result-description">{book.description}</p>
+            <div className="result-divider" />
+            <p className="result-match-heading">Why this is you</p>
+            <p className="result-match">{book.matchReason}</p>
           </div>
-        ))}
+        </div>
+
+        <div className="scores-section">
+          <p className="scores-heading">All scores</p>
+          <div className="scores-list">
+            {sorted.map((key) => (
+              <ScoreBar
+                key={key}
+                bookKey={key}
+                score={scores[key]}
+                maxScore={maxScore}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="result-radar-section">
+          <RadarChart scores={scores} />
+        </div>
+
+        <div className="result-actions">
+          <ShareButton book={book} />
+          <button className="btn-secondary" onClick={onRestart}>
+            Take it again
+          </button>
+        </div>
       </div>
-
-      {/* Radar chart added at the end */}
-
-      <div className="result-chart">
-        <RadarChart scores={scores} />
-      </div>
-
-      <div className="result-actions">
-        <button onClick={restart}>
-          Take Quiz Again
-        </button>
-      </div>
-
     </div>
   );
 }
