@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { books, bookOrder } from '../data/books';
+import RadarChart from './RadarChart';
+import { encodeResultToURL } from '../hooks/useQuiz';
 
 function ScoreBar({ bookKey, score, maxScore }) {
   const book = books[bookKey];
@@ -21,34 +23,56 @@ function ScoreBar({ bookKey, score, maxScore }) {
   );
 }
 
-function ShareButton({ book }) {
-  const [state, setState] = useState('idle');
+function ShareOptions({ book, scores, topResult }) {
+  const [textState, setTextState] = useState('idle');
+  const [linkState, setLinkState] = useState('idle');
+  const hasNativeShare = typeof navigator !== 'undefined' && !!navigator.share;
 
-  async function handleShare() {
-    const firstSentence = book.matchReason.split('. ')[0] + '.';
-    const text = `I got "${book.title}" on the Culture novel quiz.\n\n"${firstSentence}"\n\nWhich Culture novel are you?`;
+  const shareText = `I got "${book.title}" on the Culture novel quiz.\n\n"${book.matchReason.split('. ')[0]}."\n\nWhich Culture novel are you?`;
 
-    if (navigator.share) {
-      try {
-        await navigator.share({ text });
-      } catch {
-        // user cancelled — do nothing
-      }
-    } else {
-      try {
-        await navigator.clipboard.writeText(text);
-        setState('copied');
-        setTimeout(() => setState('idle'), 2000);
-      } catch {
-        // clipboard unavailable
-      }
+  async function handleNativeShare() {
+    try {
+      await navigator.share({ text: shareText });
+    } catch {
+      // user cancelled
+    }
+  }
+
+  async function handleCopyText() {
+    try {
+      await navigator.clipboard.writeText(shareText);
+      setTextState('copied');
+      setTimeout(() => setTextState('idle'), 2000);
+    } catch {
+      // clipboard unavailable
+    }
+  }
+
+  async function handleCopyLink() {
+    try {
+      const url = encodeResultToURL(topResult, scores);
+      await navigator.clipboard.writeText(url);
+      setLinkState('copied');
+      setTimeout(() => setLinkState('idle'), 2000);
+    } catch {
+      // clipboard unavailable
     }
   }
 
   return (
-    <button className="btn-share" onClick={handleShare}>
-      {state === 'copied' ? 'Copied to clipboard' : 'Share result'}
-    </button>
+    <div className="share-options">
+      {hasNativeShare && (
+        <button className="btn-share" onClick={handleNativeShare}>
+          Share via&hellip;
+        </button>
+      )}
+      <button className="btn-share" onClick={handleCopyText}>
+        {textState === 'copied' ? 'Copied!' : 'Copy text'}
+      </button>
+      <button className="btn-share" onClick={handleCopyLink}>
+        {linkState === 'copied' ? 'Link copied!' : 'Copy link'}
+      </button>
+    </div>
   );
 }
 
@@ -80,6 +104,8 @@ export default function ResultScreen({ scores, topResult, onRestart }) {
           </div>
         </div>
 
+        <RadarChart scores={scores} />
+
         <div className="scores-section">
           <p className="scores-heading">All scores</p>
           <div className="scores-list">
@@ -95,7 +121,7 @@ export default function ResultScreen({ scores, topResult, onRestart }) {
         </div>
 
         <div className="result-actions">
-          <ShareButton book={book} />
+          <ShareOptions book={book} scores={scores} topResult={topResult} />
           <button className="btn-secondary" onClick={onRestart}>
             Take it again
           </button>

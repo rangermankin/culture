@@ -2,17 +2,17 @@ import React, { useMemo } from 'react';
 import { bookOrder } from '../data/books';
 import { questions } from '../data/questions';
 
-// Short two-line labels for each book axis
+// Concept labels for each axis (what the axis actually measures)
 const LABELS = {
-  cp:  ['Consider', 'Phlebas'],
-  pg:  ['Player of', 'Games'],
-  uw:  ['Use of', 'Weapons'],
-  ex:  ['Excession', ''],
-  inv: ['Inversions', ''],
-  ltw: ['Look to', 'Windward'],
-  mat: ['Matter', ''],
-  sd:  ['Surface', 'Detail'],
-  ths: ['Hydrogen', 'Sonata'],
+  cp:  ['Pragmatism', ''],
+  pg:  ['Mastery', ''],
+  uw:  ['Identity', ''],
+  ex:  ['Wonder', ''],
+  inv: ['Influence', ''],
+  ltw: ['Memory', ''],
+  mat: ['Growth', ''],
+  sd:  ['Justice', ''],
+  ths: ['Transcendence', ''],
 };
 
 // Precompute the theoretical max score per book
@@ -35,6 +35,10 @@ const MAX_SCORES = (() => {
   return maxes;
 })();
 
+// Typical users score ~55% of the theoretical max on their top axis.
+// Scaling by this factor makes the polygon fill most of the chart.
+const SCALE_FACTOR = 0.55;
+
 const N = bookOrder.length; // 9
 const CX = 165;
 const CY = 160;
@@ -54,7 +58,7 @@ function polarToXY(r, i) {
 function polygonPoints(scores) {
   return bookOrder
     .map((key, i) => {
-      const max = MAX_SCORES[key] || 1;
+      const max = (MAX_SCORES[key] || 1) * SCALE_FACTOR;
       const ratio = Math.min(scores[key] / max, 1);
       return polarToXY(ratio * R, i).join(',');
     })
@@ -128,7 +132,7 @@ export default function RadarChart({ scores }) {
 
         {/* Dot at each axis tip */}
         {bookOrder.map((key, i) => {
-          const max = MAX_SCORES[key] || 1;
+          const max = (MAX_SCORES[key] || 1) * SCALE_FACTOR;
           const ratio = Math.min(scores[key] / max, 1);
           if (ratio === 0) return null;
           const [x, y] = polarToXY(ratio * R, i);
