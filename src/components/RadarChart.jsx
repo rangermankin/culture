@@ -19,10 +19,10 @@ const LABELS = {
 // div: fractional axis index of the leading divider line
 // mid: fractional axis index of the quadrant label midpoint
 const QUADRANTS = [
-  { label: 'Self',      sub: 'The examined individual',          div: -0.5, mid: 0.5 },
-  { label: 'Legacy',    sub: 'Time, endings, what persists',     div:  1.5, mid: 2.5 },
-  { label: 'Ethics',    sub: 'Power, agency, consequence',       div:  3.5, mid: 5.0 },
-  { label: 'Encounter', sub: 'The unknown, the vast, the other', div:  6.5, mid: 7.5 },
+  { label: 'Self',      div: -0.5, mid: 0.5 },
+  { label: 'Legacy',    div:  1.5, mid: 2.5 },
+  { label: 'Ethics',    div:  3.5, mid: 5.0 },
+  { label: 'Encounter', div:  6.5, mid: 7.5 },
 ];
 
 // Precompute the theoretical max score per book
@@ -53,9 +53,9 @@ const N = bookOrder.length; // 9
 const CX = 180;
 const CY = 180;
 const R = 95;        // radius of chart area
-const LABEL_R = 127; // where axis labels sit
-const DIV_R = 145;   // quadrant divider lines extend to here
-const QUAD_R = 158;  // quadrant category labels sit here
+const LABEL_R = 110; // where axis labels sit
+const DIV_R = 155;   // quadrant divider lines extend to here
+const QUAD_R = 168;  // quadrant category labels sit here
 
 function angle(i) {
   // Start from top (−π/2), go clockwise; accepts fractional indices
@@ -200,7 +200,7 @@ export default function RadarChart({ scores }) {
               y={baseY}
               textAnchor={anchor}
               dominantBaseline="middle"
-              fontSize="10"
+              fontSize="8.5"
               fontFamily="var(--font-body)"
               fill="var(--text-secondary)"
               fontWeight="500"
@@ -224,11 +224,12 @@ export default function RadarChart({ scores }) {
               y={ly}
               textAnchor={anchor}
               dominantBaseline="middle"
+              fontSize="11"
               fontFamily="var(--font-body)"
               fill="var(--text-secondary)"
+              fontWeight="700"
             >
-              <tspan x={lx} dy="-5" fontSize="9" fontWeight="600">{q.label}</tspan>
-              <tspan x={lx} dy="13" fontSize="7.5" opacity="0.7">{q.sub}</tspan>
+              {q.label}
             </text>
           );
         })}
