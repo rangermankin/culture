@@ -12,25 +12,18 @@ function decodeScoresFromUrl() {
   const encoded = params.get('r');
   if (!encoded) return null;
 
-  const pairs = encoded.split(',');
-  if (!pairs.length) return null;
+  const parts = encoded.split('.');
+  if (parts.length !== bookOrder.length) return null;
 
   const decoded = initialScores();
-  let foundAtLeastOne = false;
 
-  for (const pair of pairs) {
-    const [key, rawValue] = pair.split(':');
-    if (!key || rawValue == null) continue;
-    if (!bookOrder.includes(key)) continue;
-
-    const value = Number(rawValue);
-    if (!Number.isFinite(value) || value < 0) continue;
-
-    decoded[key] = value;
-    foundAtLeastOne = true;
+  for (let i = 0; i < bookOrder.length; i += 1) {
+    const value = Number(parts[i]);
+    if (!Number.isFinite(value) || value < 0) return null;
+    decoded[bookOrder[i]] = value;
   }
 
-  return foundAtLeastOne ? decoded : null;
+  return decoded;
 }
 
 function clearSharedResultUrl() {
