@@ -3,9 +3,7 @@ import { books, bookOrder } from '../data/books';
 import RadarChart from './RadarChart';
 
 function encodeScores(scores) {
-  return bookOrder
-    .map((key) => `${key}:${scores[key] ?? 0}`)
-    .join(',');
+  return bookOrder.map((key) => scores[key] ?? 0).join('.');
 }
 
 function buildShareUrl(scores) {
@@ -82,7 +80,7 @@ function ShareButton({ book, scores }) {
   }
 
   return (
-    <div className="share-block">
+    <div className="result-radar-actions">
       <button className="btn-share" onClick={handleShare} type="button">
         {state === 'copied'
           ? 'Copied message + link'
@@ -98,17 +96,6 @@ function ShareButton({ book, scores }) {
       <button className="btn-secondary" onClick={copyLinkOnly} type="button">
         Copy link
       </button>
-
-      <p
-        style={{
-          marginTop: '0.75rem',
-          fontSize: '0.85rem',
-          wordBreak: 'break-all',
-          opacity: 0.75,
-        }}
-      >
-        {shareUrl}
-      </p>
     </div>
   );
 }
@@ -156,10 +143,10 @@ export default function ResultScreen({ scores, topResult, onRestart }) {
 
         <div className="result-radar-section">
           <RadarChart scores={scores} />
+          <ShareButton book={book} scores={scores} />
         </div>
 
         <div className="result-actions">
-          <ShareButton book={book} scores={scores} />
           <button className="btn-secondary" onClick={onRestart} type="button">
             Take it again
           </button>
