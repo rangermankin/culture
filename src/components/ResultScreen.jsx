@@ -83,7 +83,7 @@ function ShareButton({ book, scores }) {
 
   return (
     <div className="share-block">
-      <button className="btn-share" onClick={handleShare}>
+      <button className="btn-share" onClick={handleShare} type="button">
         {state === 'copied'
           ? 'Copied message + link'
           : state === 'copied-link'
@@ -160,7 +160,7 @@ export default function ResultScreen({ scores, topResult, onRestart }) {
 
         <div className="result-actions">
           <ShareButton book={book} scores={scores} />
-          <button className="btn-secondary" onClick={onRestart}>
+          <button className="btn-secondary" onClick={onRestart} type="button">
             Take it again
           </button>
         </div>
