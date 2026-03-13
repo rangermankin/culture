@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { books, bookOrder } from '../data/books';
 import RadarChart from './RadarChart';
 
 function encodeScores(scores) {
-  return bookOrder.map((key) => scores[key] ?? 0).join('.');
+  return bookOrder
+    .map((key) => `${key}:${scores[key] ?? 0}`)
+    .join(',');
 }
 
 function buildShareUrl(scores) {
   if (typeof window === 'undefined') return '';
+
   const url = new URL(window.location.href);
-  url.search = '';
   url.searchParams.set('r', encodeScores(scores));
   return url.toString();
 }
@@ -17,6 +19,7 @@ function buildShareUrl(scores) {
 function ScoreBar({ bookKey, score, maxScore }) {
   const book = books[bookKey];
   const pct = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
+
   return (
     <div className="score-row">
       <span className="score-label">{book.title}</span>
@@ -36,11 +39,22 @@ function ScoreBar({ bookKey, score, maxScore }) {
 
 function ShareButton({ book, scores }) {
   const [state, setState] = useState('idle');
+  const shareUrl = useMemo(() => buildShareUrl(scores), [scores]);
+
+  async function copyLinkOnly() {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setState('copied-link');
+      setTimeout(() => setState('idle'), 2000);
+    } catch {
+      setState('failed');
+      setTimeout(() => setState('idle'), 2500);
+    }
+  }
 
   async function handleShare() {
-    const shareUrl = buildShareUrl(scores);
     const firstSentence = book.matchReason.split('. ')[0] + '.';
-    const text = `I got "${book.title}" on the Culture novel quiz.\n\n"${firstSentence}"\n\nSee my full result here:`;
+    const text = `I got "${book.title}" on the Culture novel quiz.\n\n${firstSentence}`;
 
     if (navigator.share) {
       try {
@@ -49,25 +63,53 @@ function ShareButton({ book, scores }) {
           text,
           url: shareUrl,
         });
+        setState('shared');
+        setTimeout(() => setState('idle'), 2000);
+        return;
       } catch {
-        // user cancelled
+        // fall through to clipboard
       }
-      return;
     }
 
     try {
-      await navigator.clipboard.writeText(`${text}\n${shareUrl}`);
+      await navigator.clipboard.writeText(`${text}\n\n${shareUrl}`);
       setState('copied');
       setTimeout(() => setState('idle'), 2000);
     } catch {
-      // clipboard unavailable
+      setState('failed');
+      setTimeout(() => setState('idle'), 2500);
     }
   }
 
   return (
-    <button className="btn-share" onClick={handleShare}>
-      {state === 'copied' ? 'Link copied' : 'Share result'}
-    </button>
+    <div className="share-block">
+      <button className="btn-share" onClick={handleShare}>
+        {state === 'copied'
+          ? 'Copied message + link'
+          : state === 'copied-link'
+          ? 'Link copied'
+          : state === 'shared'
+          ? 'Shared'
+          : state === 'failed'
+          ? 'Share failed'
+          : 'Share result'}
+      </button>
+
+      <button className="btn-secondary" onClick={copyLinkOnly} type="button">
+        Copy link
+      </button>
+
+      <p
+        style={{
+          marginTop: '0.75rem',
+          fontSize: '0.85rem',
+          wordBreak: 'break-all',
+          opacity: 0.75,
+        }}
+      >
+        {shareUrl}
+      </p>
+    </div>
   );
 }
 
