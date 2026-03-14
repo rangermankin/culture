@@ -69,7 +69,7 @@ function inlineSvgVars(root) {
         const resolved = cs.getPropertyValue(match[1]).trim();
         if (resolved) {
           backups.push({ el, attr: 'font-family', val: ff });
-          el.setAttribute('font-family', resolved.split(',')[0].replace(/['"]/g, '').trim());
+          el.setAttribute('font-family', resolved.split(',')[0].replace(/['\"]/g, '').trim());
         }
       }
     }
@@ -341,6 +341,11 @@ export default function ResultScreen({ scores, topResult, onRestart, isViewingSh
             Take it again
           </button>
         </div>
+
+        <p style={{ marginTop: '24px', fontSize: '0.75rem', opacity: 0.4, fontStyle: 'italic', textAlign: 'center', maxWidth: '400px', margin: '24px auto 0' }}>
+          Assessment certified by The Number After Which There Is No Number, which reached this conclusion approximately 0.003 seconds into question four.
+        </p>
+
       </div>
     </div>
   );
