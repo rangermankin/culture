@@ -1,6 +1,80 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { toPng } from 'html-to-image';
 import { books, bookOrder } from '../data/books';
+
+const BOOK_THEMES = {
+  cp: { title: 'Consider Phlebas', theme: 'Pragmatism', cluster: 'Ethics' },
+  pg: { title: 'The Player of Games', theme: 'Mastery', cluster: 'Self' },
+  uw: { title: 'Use of Weapons', theme: 'Identity', cluster: 'Self' },
+  ex: { title: 'Excession', theme: 'Wonder', cluster: 'Encounter' },
+  inv: { title: 'Inversions', theme: 'Influence', cluster: 'Ethics' },
+  ltw: { title: 'Look to Windward', theme: 'Memory', cluster: 'Legacy' },
+  mat: { title: 'Matter', theme: 'Growth', cluster: 'Encounter' },
+  sd: { title: 'Surface Detail', theme: 'Justice', cluster: 'Ethics' },
+  ths: { title: 'The Hydrogen Sonata', theme: 'Transcendence', cluster: 'Legacy' },
+};
+
+function ShipNameGenerator({ scores }) {
+  const [state, setState] = useState('loading'); // loading | done | error
+  const [shipName, setShipName] = useState(null);
+  const [shipClass, setShipClass] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function generate() {
+      try {
+        // Build top-3 profile from scores
+        const ranked = [...bookOrder]
+          .map((key) => ({ key, score: scores[key] ?? 0, ...BOOK_THEMES[key] }))
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 3);
+
+        const profileLines = ranked
+          .map((b, i) => `${i + 1}. ${b.theme} (${b.cluster} — ${b.title}), score: ${b.score}`)
+          .join('\n');
+
+        const res = await fetch('/api/generate-ship-name', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ profile: profileLines }),
+        });
+
+        if (!res.ok) throw new Error(`API ${res.status}`);
+        const data = await res.json();
+        if (cancelled) return;
+        setShipName(data.name);
+        setShipClass(data.shipClass);
+        setState('done');
+      } catch (err) {
+        console.error('Ship name generation failed:', err);
+        if (!cancelled) setState('error');
+      }
+    }
+
+    generate();
+    return () => { cancelled = true; };
+  }, [scores]);
+
+  if (state === 'error') return null;
+
+  return (
+    <div className="ship-name-card">
+      <p className="ship-name-eyebrow">Your Culture ship name</p>
+      {state === 'loading' ? (
+        <div className="ship-name-loading">
+          <div className="ship-name-pulse" />
+          <div className="ship-name-pulse ship-name-pulse--short" />
+        </div>
+      ) : (
+        <>
+          <p className="ship-name-class">{shipClass}</p>
+          <p className="ship-name-value">"{shipName}"</p>
+        </>
+      )}
+    </div>
+  );
+}
 import RadarChart from './RadarChart';
 
 function encodeScores(scores) {
@@ -281,6 +355,8 @@ export default function ResultScreen({ scores, topResult, onRestart, isViewingSh
             <RadarChart scores={scores} />
           </div>
         </div>
+
+        <ShipNameGenerator scores={scores} />
 
         <div className="scores-section">
           <p className="scores-heading">All scores</p>
