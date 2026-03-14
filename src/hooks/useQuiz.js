@@ -37,6 +37,7 @@ function clearSharedResultUrl() {
 export function useQuiz() {
   const sharedScores = decodeScoresFromUrl();
 
+  const [isViewingShared] = useState(!!sharedScores);
   const [phase, setPhase] = useState(sharedScores ? 'result' : 'start');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [scores, setScores] = useState(sharedScores || initialScores);
@@ -88,6 +89,7 @@ export function useQuiz() {
     topResult,
     question: questions[currentIndex] ?? null,
     totalQuestions: questions.length,
+    isViewingShared,
     startQuiz,
     selectAnswer,
     restart,
