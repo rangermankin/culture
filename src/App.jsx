@@ -3,6 +3,8 @@ import { useQuiz } from './hooks/useQuiz';
 import StartScreen from './components/StartScreen';
 import QuizScreen from './components/QuizScreen';
 import ResultScreen from './components/ResultScreen';
+import EnjoymentScreen from './components/EnjoymentScreen';
+import NotForYouScreen from './components/NotForYouScreen';
 
 export default function App() {
   const {
@@ -15,6 +17,8 @@ export default function App() {
     isViewingShared,
     startQuiz,
     selectAnswer,
+    answerEnjoyment,
+    goToResult,
     restart,
   } = useQuiz();
 
@@ -29,6 +33,12 @@ export default function App() {
           onSelect={selectAnswer}
           scores={scores}
         />
+      )}
+      {phase === 'enjoyment' && (
+        <EnjoymentScreen onAnswer={answerEnjoyment} />
+      )}
+      {phase === 'not-for-you' && (
+        <NotForYouScreen onSeeResults={goToResult} />
       )}
       {phase === 'result' && (
         <ResultScreen
