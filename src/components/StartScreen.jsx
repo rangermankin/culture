@@ -20,6 +20,9 @@ export default function StartScreen({ onStart }) {
           <span className="dot">·</span>
           <span>1987 – 2012</span>
         </div>
+        <p className="start-administered">
+          Administered by The Number After Which There Is No Number
+        </p>
       </div>
     </div>
   );
