@@ -7,14 +7,13 @@ export default function NotForYouScreen({ onSeeResults }) {
         <div className="nfy-icon">✕</div>
         <h2 className="nfy-title">The Culture Series is not for you.</h2>
         <p className="nfy-body">
-          That's okay. Not every book belongs on every shelf, and not every
-          personality quiz belongs in every inbox. We respect the honesty.
+          Don't take it personally. The books will feel a lot like this assessment so it's probably best to try something else.
         </p>
         <p className="nfy-body">
           We'll spare you the full results.
         </p>
         <button className="nfy-peek" onClick={onSeeResults}>
-          I still want to see my results
+          Hmmm, let me see anyway. I'll determine that for myself (good choice!)
         </button>
       </div>
     </div>
