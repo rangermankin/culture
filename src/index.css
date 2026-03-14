@@ -617,3 +617,73 @@ body::before {
     padding: 16px 16px;
   }
 }
+
+/* ─── Enjoyment Screen ───────────────────────────────────────────────── */
+.enjoyment-screen {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.enjoyment-inner {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ─── Not For You Screen ─────────────────────────────────────────────── */
+.not-for-you-screen {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.nfy-inner {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 20px;
+  padding-top: 24px;
+}
+
+.nfy-icon {
+  font-size: 2rem;
+  color: var(--text-muted);
+  line-height: 1;
+}
+
+.nfy-title {
+  font-family: var(--font-heading);
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 400;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.nfy-body {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  max-width: 480px;
+  line-height: 1.7;
+}
+
+.nfy-peek {
+  margin-top: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  padding: 4px 0;
+  transition: color var(--transition);
+}
+
+.nfy-peek:hover {
+  color: var(--text-secondary);
+}
