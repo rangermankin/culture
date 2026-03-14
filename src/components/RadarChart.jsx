@@ -149,7 +149,7 @@ export default function RadarChart({ scores }) {
 
   return (
     <div className="radar-wrap">
-      <p className="radar-heading">Personality map</p>
+      <p className="radar-heading">AI Mind Map</p>
       <svg
         viewBox="0 0 380 380"
         className="radar-svg"
