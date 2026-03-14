@@ -57,7 +57,8 @@ Respond ONLY with valid JSON, no markdown, no explanation:
 
     let parsed;
     try {
-      parsed = JSON.parse(text.trim());
+      const clean = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim();
+      parsed = JSON.parse(clean);
     } catch {
       console.error('Failed to parse model response:', text);
       return res.status(502).json({ error: 'Invalid model response' });
