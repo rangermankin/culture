@@ -6,20 +6,20 @@ export default function EnjoymentScreen({ onAnswer }) {
       <div className="enjoyment-inner">
         <p className="question-count">One last thing</p>
         <h2 className="question-text">
-          How much did you enjoy this personality assessment?
+          Thank you for taking the time complete this assessment. How much did you enjoy the expereince?
         </h2>
         <div className="options-grid">
           <button
             className="option-card"
             onClick={() => onAnswer(true)}
           >
-            A lot
+            It was deeply engageing and I feel I've grown by participating.
           </button>
           <button
             className="option-card"
             onClick={() => onAnswer(false)}
           >
-            Not at all
+            Certainly not my cup of tea...
           </button>
         </div>
       </div>
