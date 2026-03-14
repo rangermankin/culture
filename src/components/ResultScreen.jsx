@@ -3,78 +3,17 @@ import { toPng } from 'html-to-image';
 import { books, bookOrder } from '../data/books';
 
 const BOOK_THEMES = {
-  cp: { title: 'Consider Phlebas', theme: 'Pragmatism', cluster: 'Ethics' },
-  pg: { title: 'The Player of Games', theme: 'Mastery', cluster: 'Self' },
-  uw: { title: 'Use of Weapons', theme: 'Identity', cluster: 'Self' },
-  ex: { title: 'Excession', theme: 'Wonder', cluster: 'Encounter' },
-  inv: { title: 'Inversions', theme: 'Influence', cluster: 'Ethics' },
-  ltw: { title: 'Look to Windward', theme: 'Memory', cluster: 'Legacy' },
-  mat: { title: 'Matter', theme: 'Growth', cluster: 'Encounter' },
-  sd: { title: 'Surface Detail', theme: 'Justice', cluster: 'Ethics' },
-  ths: { title: 'The Hydrogen Sonata', theme: 'Transcendence', cluster: 'Legacy' },
+  cp:  { title: 'Consider Phlebas',     theme: 'Pragmatism',    cluster: 'Ethics' },
+  pg:  { title: 'The Player of Games',  theme: 'Mastery',       cluster: 'Self' },
+  uw:  { title: 'Use of Weapons',       theme: 'Identity',      cluster: 'Self' },
+  ex:  { title: 'Excession',            theme: 'Wonder',        cluster: 'Encounter' },
+  inv: { title: 'Inversions',           theme: 'Influence',     cluster: 'Ethics' },
+  ltw: { title: 'Look to Windward',     theme: 'Memory',        cluster: 'Legacy' },
+  mat: { title: 'Matter',               theme: 'Growth',        cluster: 'Encounter' },
+  sd:  { title: 'Surface Detail',       theme: 'Justice',       cluster: 'Ethics' },
+  ths: { title: 'The Hydrogen Sonata',  theme: 'Transcendence', cluster: 'Legacy' },
 };
 
-function ShipNameGenerator({ scores }) {
-  const [state, setState] = useState('loading'); // loading | done | error
-  const [shipName, setShipName] = useState(null);
-  const [shipClass, setShipClass] = useState(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function generate() {
-      try {
-        // Build top-3 profile from scores
-        const ranked = [...bookOrder]
-          .map((key) => ({ key, score: scores[key] ?? 0, ...BOOK_THEMES[key] }))
-          .sort((a, b) => b.score - a.score)
-          .slice(0, 3);
-
-        const profileLines = ranked
-          .map((b, i) => `${i + 1}. ${b.theme} (${b.cluster} — ${b.title}), score: ${b.score}`)
-          .join('\n');
-
-        const res = await fetch('/api/generate-ship-name', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ profile: profileLines }),
-        });
-
-        if (!res.ok) throw new Error(`API ${res.status}`);
-        const data = await res.json();
-        if (cancelled) return;
-        setShipName(data.name);
-        setShipClass(data.shipClass);
-        setState('done');
-      } catch (err) {
-        console.error('Ship name generation failed:', err);
-        if (!cancelled) setState('error');
-      }
-    }
-
-    generate();
-    return () => { cancelled = true; };
-  }, [scores]);
-
-  if (state === 'error') return null;
-
-  return (
-    <div className="ship-name-card">
-      <p className="ship-name-eyebrow">Your Culture ship name</p>
-      {state === 'loading' ? (
-        <div className="ship-name-loading">
-          <div className="ship-name-pulse" />
-          <div className="ship-name-pulse ship-name-pulse--short" />
-        </div>
-      ) : (
-        <>
-          <p className="ship-name-class">{shipClass}</p>
-          <p className="ship-name-value">"{shipName}"</p>
-        </>
-      )}
-    </div>
-  );
-}
 import RadarChart from './RadarChart';
 
 function encodeScores(scores) {
@@ -106,9 +45,6 @@ function ScoreBar({ bookKey, score, maxScore }) {
   );
 }
 
-// Resolve CSS custom properties in SVG attributes before html-to-image
-// serialises the DOM — svg attributes like stroke="var(--border)" are not
-// resolved by getComputedStyle and will silently produce blank/black output.
 function inlineSvgVars(root) {
   const cs = getComputedStyle(document.documentElement);
   const ATTRS = ['stroke', 'fill', 'color', 'stop-color'];
@@ -126,7 +62,6 @@ function inlineSvgVars(root) {
         el.setAttribute(attr, resolved);
       }
     });
-    // Also handle font-family in text elements
     const ff = el.getAttribute('font-family');
     if (ff && ff.includes('var(')) {
       const match = ff.match(/var\((--[\w-]+)\)/);
@@ -190,8 +125,6 @@ function ShareButton({ book, scores, imageRef }) {
     let restoreVars = null;
     try {
       await document.fonts.ready;
-
-      // Inline CSS vars in SVG attributes so html-to-image can read them
       restoreVars = inlineSvgVars(imageRef.current);
 
       const cs = getComputedStyle(document.documentElement);
@@ -210,16 +143,10 @@ function ShareButton({ book, scores, imageRef }) {
       const firstSentence = book.matchReason.split('. ')[0] + '.';
       const text = `I got "${book.title}" on the Culture novel quiz.\n\n${firstSentence}`;
 
-      // Try native share with image file + link
       if (navigator.share && navigator.canShare) {
         const blob = await fetch(dataUrl).then((r) => r.blob());
         const file = new File([blob], 'culture-result.png', { type: 'image/png' });
-        const shareData = {
-          files: [file],
-          title: 'My Culture novel result',
-          text,
-          url: shareUrl,
-        };
+        const shareData = { files: [file], title: 'My Culture novel result', text, url: shareUrl };
         if (navigator.canShare(shareData)) {
           await navigator.share(shareData);
           setState('shared');
@@ -228,7 +155,6 @@ function ShareButton({ book, scores, imageRef }) {
         }
       }
 
-      // ClipboardItem image write doesn't work on Linux — download instead
       const isLinux = /linux/i.test(navigator.userAgent) && !/android/i.test(navigator.userAgent);
       const blob = await fetch(dataUrl).then((r) => r.blob());
 
@@ -246,7 +172,6 @@ function ShareButton({ book, scores, imageRef }) {
       }
     } catch (err) {
       if (restoreVars) restoreVars();
-      // User cancelled the share sheet — not a real error
       if (err?.name === 'AbortError') {
         setState('idle');
         return;
@@ -258,36 +183,25 @@ function ShareButton({ book, scores, imageRef }) {
   }
 
   const imageLabel =
-    state === 'generating'
-      ? 'Generating...'
-      : state === 'shared'
-      ? 'Shared'
-      : state === 'copied'
-      ? 'Image copied'
-      : state === 'downloaded'
-      ? 'Downloaded'
-      : state === 'failed'
-      ? 'Failed'
-      : 'Share image';
+    state === 'generating' ? 'Generating...' :
+    state === 'shared'     ? 'Shared' :
+    state === 'copied'     ? 'Image copied' :
+    state === 'downloaded' ? 'Downloaded' :
+    state === 'failed'     ? 'Failed' :
+    'Share image';
 
   return (
     <div className="result-radar-actions">
       <button className="btn-share" onClick={handleShare} type="button">
-        {state === 'copied'
-          ? 'Copied message + link'
-          : state === 'copied-link'
-          ? 'Link copied'
-          : state === 'shared'
-          ? 'Shared'
-          : state === 'failed'
-          ? 'Share failed'
-          : 'Share result'}
+        {state === 'copied'      ? 'Copied message + link' :
+         state === 'copied-link' ? 'Link copied' :
+         state === 'shared'      ? 'Shared' :
+         state === 'failed'      ? 'Share failed' :
+         'Share result'}
       </button>
-
       <button className="btn-secondary" onClick={copyLinkOnly} type="button">
         Copy link
       </button>
-
       <button
         className="btn-secondary"
         onClick={handleImageShare}
@@ -306,6 +220,50 @@ export default function ResultScreen({ scores, topResult, onRestart, isViewingSh
   const maxScore = scores[sorted[0]];
   const imageRef = useRef(null);
 
+  const [shipName, setShipName] = useState(null);
+  const [shipClass, setShipClass] = useState(null);
+  const [shipState, setShipState] = useState('loading');
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function generate() {
+      try {
+        const ranked = [...bookOrder]
+          .map((key) => ({ key, score: scores[key] ?? 0, ...BOOK_THEMES[key] }))
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 3);
+
+        const profileLines = ranked
+          .map((b, i) => `${i + 1}. ${b.theme} (${b.cluster} — ${b.title}), score: ${b.score}`)
+          .join('\n');
+
+        const res = await fetch('/api/generate-ship-name', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ profile: profileLines }),
+        });
+
+        if (!res.ok) throw new Error(`API ${res.status}`);
+        const data = await res.json();
+        if (cancelled) return;
+        setShipName(data.name);
+        setShipClass(data.shipClass);
+        setShipState('done');
+      } catch (err) {
+        console.error('Ship name generation failed:', err);
+        if (!cancelled) setShipState('error');
+      }
+    }
+
+    generate();
+    return () => { cancelled = true; };
+  }, [scores]);
+
+  const radarHeading = shipState === 'done' && shipName
+    ? `${shipClass} "${shipName}"`
+    : 'AI Mind Map';
+
   return (
     <div className="screen result-screen">
       <div className="result-inner">
@@ -322,22 +280,14 @@ export default function ResultScreen({ scores, topResult, onRestart, isViewingSh
           </div>
         )}
 
-        {/* Capture target: card + radar */}
         <div
           ref={imageRef}
           className="share-card-target"
-          style={{
-            backgroundColor: 'var(--bg-base)',
-            padding: '24px',
-            borderRadius: '16px',
-          }}
+          style={{ backgroundColor: 'var(--bg-base)', padding: '24px', borderRadius: '16px' }}
         >
           <div
             className="result-card"
-            style={{
-              '--book-accent': book.accentColor,
-              '--book-light': book.accentLight,
-            }}
+            style={{ '--book-accent': book.accentColor, '--book-light': book.accentLight }}
           >
             <div className="result-stripe" />
             <div className="result-card-body">
@@ -352,11 +302,26 @@ export default function ResultScreen({ scores, topResult, onRestart, isViewingSh
           </div>
 
           <div className="result-radar-section" style={{ marginTop: '16px' }}>
-            <RadarChart scores={scores} />
+            <RadarChart scores={scores} heading={radarHeading} />
           </div>
         </div>
 
-        <ShipNameGenerator scores={scores} />
+        {shipState !== 'error' && (
+          <div className="ship-name-card">
+            <p className="ship-name-eyebrow">Your Culture ship name</p>
+            {shipState === 'loading' ? (
+              <div className="ship-name-loading">
+                <div className="ship-name-pulse" />
+                <div className="ship-name-pulse ship-name-pulse--short" />
+              </div>
+            ) : (
+              <>
+                <p className="ship-name-class">{shipClass}</p>
+                <p className="ship-name-value">"{shipName}"</p>
+              </>
+            )}
+          </div>
+        )}
 
         <div className="scores-section">
           <p className="scores-heading">All scores</p>
