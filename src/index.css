@@ -296,6 +296,58 @@ body::before {
   border-color: var(--accent-blue);
 }
 
+/* ─── Shared Result Callout ──────────────────────────────────────────── */
+.shared-result-callout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+  padding: 24px 28px;
+  background: #dce9f7;
+  border: 1.5px solid #a8c5e8;
+  border-radius: var(--radius-card);
+  animation: fadeIn 0.35s ease both;
+}
+
+.callout-eyebrow {
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent-blue);
+}
+
+.callout-message {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-style: italic;
+  font-weight: 300;
+  color: var(--text-primary);
+  line-height: 1.5;
+  margin-top: 4px;
+}
+
+.btn-take-quiz {
+  display: inline-block;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  border: 2px solid var(--text-primary);
+  border-radius: 6px;
+  padding: 13px 48px;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.btn-take-quiz:hover {
+  background: var(--text-primary);
+  color: #fff;
+}
+
 /* ─── Result Screen ──────────────────────────────────────────────────── */
 .result-inner {
   display: flex;
