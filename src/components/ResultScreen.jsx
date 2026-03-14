@@ -226,7 +226,7 @@ function ShareButton({ book, scores, imageRef }) {
   );
 }
 
-export default function ResultScreen({ scores, topResult, onRestart }) {
+export default function ResultScreen({ scores, topResult, onRestart, isViewingShared, onTakeQuiz }) {
   const book = books[topResult];
   const sorted = [...bookOrder].sort((a, b) => scores[b] - scores[a]);
   const maxScore = scores[sorted[0]];
@@ -235,6 +235,18 @@ export default function ResultScreen({ scores, topResult, onRestart }) {
   return (
     <div className="screen result-screen">
       <div className="result-inner">
+
+        {isViewingShared && (
+          <div className="shared-result-callout">
+            <div>
+              <p className="callout-eyebrow">Someone shared this with you</p>
+              <p className="callout-message">This is their result. Which Culture novel are you?</p>
+            </div>
+            <button className="btn-take-quiz" onClick={onTakeQuiz} type="button">
+              Take the quiz
+            </button>
+          </div>
+        )}
 
         {/* Capture target: card + radar */}
         <div
@@ -255,7 +267,7 @@ export default function ResultScreen({ scores, topResult, onRestart }) {
           >
             <div className="result-stripe" />
             <div className="result-card-body">
-              <p className="result-label">Your result</p>
+              <p className="result-label">{isViewingShared ? 'Their result' : 'Your result'}</p>
               <h2 className="result-title">{book.title}</h2>
               <p className="result-year">{book.year}</p>
               <p className="result-description">{book.description}</p>
