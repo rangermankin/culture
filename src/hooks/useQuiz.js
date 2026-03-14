@@ -69,10 +69,22 @@ export function useQuiz() {
     const nextIndex = currentIndex + 1;
     if (nextIndex >= questions.length) {
       setCurrentIndex(nextIndex);
-      setPhase('result');
+      setPhase('enjoyment');
     } else {
       setCurrentIndex(nextIndex);
     }
+  }
+
+  function answerEnjoyment(liked) {
+    if (liked) {
+      setPhase('result');
+    } else {
+      setPhase('not-for-you');
+    }
+  }
+
+  function goToResult() {
+    setPhase('result');
   }
 
   function restart() {
@@ -92,6 +104,8 @@ export function useQuiz() {
     isViewingShared,
     startQuiz,
     selectAnswer,
+    answerEnjoyment,
+    goToResult,
     restart,
   };
 }
