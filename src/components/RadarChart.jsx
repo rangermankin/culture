@@ -130,7 +130,7 @@ function sectionPath(startIndex, endIndex) {
   ].join(' ');
 }
 
-export default function RadarChart({ scores }) {
+export default function RadarChart({ scores, heading = 'AI Mind Map' }) {
   const filled = useMemo(() => polygonPoints(scores), [scores]);
   const hasAnyScore = AXIS_ORDER.some((k) => (scores[k] || 0) > 0);
 
@@ -149,7 +149,7 @@ export default function RadarChart({ scores }) {
 
   return (
     <div className="radar-wrap">
-      <p className="radar-heading">AI Mind Map</p>
+      <p className="radar-heading">{heading}</p>
       <svg
         viewBox="0 0 380 380"
         className="radar-svg"
