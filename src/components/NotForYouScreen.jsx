@@ -12,6 +12,9 @@ export default function NotForYouScreen({ onSeeResults }) {
         <p className="nfy-body">
           We'll spare you the full results.
         </p>
+        <p style={{ fontSize: '0.78rem', opacity: 0.45, fontStyle: 'italic', textAlign: 'center', maxWidth: '380px', margin: '0 auto 20px' }}>
+          The Number After Which There Is No Number has run the numbers. All of them. Repeatedly. The conclusion is the same each time.
+        </p>
         <button className="nfy-peek" onClick={onSeeResults}>
           Hmmm, let me see anyway. I'll determine that for myself (good choice!)
         </button>
