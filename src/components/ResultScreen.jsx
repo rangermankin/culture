@@ -127,6 +127,7 @@ function ShareButton({ book, scores, imageRef }) {
         cacheBust: true,
         pixelRatio: 2,
         backgroundColor: bgColor,
+        skipFonts: true,
       });
 
       restoreVars();
