@@ -154,10 +154,22 @@ function ShareButton({ book, scores, imageRef }) {
         }
       }
 
-      // Fallback for desktop: copy link (no silent download)
-      await navigator.clipboard.writeText(`${text}\n\n${shareUrl}`);
-      setState('copied');
-      setTimeout(() => setState('idle'), 2000);
+      // ClipboardItem image write doesn't work on Linux — download instead
+      const isLinux = /linux/i.test(navigator.userAgent) && !/android/i.test(navigator.userAgent);
+      const blob = await fetch(dataUrl).then((r) => r.blob());
+
+      if (!isLinux && navigator.clipboard?.write) {
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        setState('copied');
+        setTimeout(() => setState('idle'), 2000);
+      } else {
+        const link = document.createElement('a');
+        link.download = 'culture-result.png';
+        link.href = dataUrl;
+        link.click();
+        setState('downloaded');
+        setTimeout(() => setState('idle'), 2000);
+      }
     } catch (err) {
       if (restoreVars) restoreVars();
       // User cancelled the share sheet — not a real error
@@ -177,7 +189,9 @@ function ShareButton({ book, scores, imageRef }) {
       : state === 'shared'
       ? 'Shared'
       : state === 'copied'
-      ? 'Copied'
+      ? 'Image copied'
+      : state === 'downloaded'
+      ? 'Downloaded'
       : state === 'failed'
       ? 'Failed'
       : 'Share image';
