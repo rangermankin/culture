@@ -20,7 +20,7 @@ export default function StartScreen({ onStart }) {
           <span className="dot">·</span>
           <span>1987 – 2012</span>
         </div>
-        <p className="start-administered">
+        <p style={{ marginTop: '12px', fontSize: '0.75rem', opacity: 0.45, fontStyle: 'italic', textAlign: 'center', letterSpacing: '0.01em' }}>
           Administered by The Number After Which There Is No Number
         </p>
       </div>
