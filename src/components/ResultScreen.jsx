@@ -32,6 +32,43 @@ function ScoreBar({ bookKey, score, maxScore }) {
   );
 }
 
+// Resolve CSS custom properties in SVG attributes before html-to-image
+// serialises the DOM — svg attributes like stroke="var(--border)" are not
+// resolved by getComputedStyle and will silently produce blank/black output.
+function inlineSvgVars(root) {
+  const cs = getComputedStyle(document.documentElement);
+  const ATTRS = ['stroke', 'fill', 'color', 'stop-color'];
+  const backups = [];
+
+  root.querySelectorAll('svg, svg *').forEach((el) => {
+    ATTRS.forEach((attr) => {
+      const val = el.getAttribute(attr);
+      if (!val || !val.includes('var(')) return;
+      const match = val.match(/var\((--[\w-]+)\)/);
+      if (!match) return;
+      const resolved = cs.getPropertyValue(match[1]).trim();
+      if (resolved) {
+        backups.push({ el, attr, val });
+        el.setAttribute(attr, resolved);
+      }
+    });
+    // Also handle font-family in text elements
+    const ff = el.getAttribute('font-family');
+    if (ff && ff.includes('var(')) {
+      const match = ff.match(/var\((--[\w-]+)\)/);
+      if (match) {
+        const resolved = cs.getPropertyValue(match[1]).trim();
+        if (resolved) {
+          backups.push({ el, attr: 'font-family', val: ff });
+          el.setAttribute('font-family', resolved.split(',')[0].replace(/['"]/g, '').trim());
+        }
+      }
+    }
+  });
+
+  return () => backups.forEach(({ el, attr, val }) => el.setAttribute(attr, val));
+}
+
 function ShareButton({ book, scores, imageRef }) {
   const [state, setState] = useState('idle');
   const shareUrl = useMemo(() => buildShareUrl(scores), [scores]);
@@ -76,35 +113,58 @@ function ShareButton({ book, scores, imageRef }) {
     if (!imageRef?.current) return;
     setState('generating');
 
+    let restoreVars = null;
     try {
+      await document.fonts.ready;
+
+      // Inline CSS vars in SVG attributes so html-to-image can read them
+      restoreVars = inlineSvgVars(imageRef.current);
+
+      const cs = getComputedStyle(document.documentElement);
+      const bgColor = cs.getPropertyValue('--bg-base').trim() || '#F2F6FC';
+
       const dataUrl = await toPng(imageRef.current, {
         cacheBust: true,
         pixelRatio: 2,
-        // Ensure the capture element has an explicit background
-        style: { borderRadius: '0' },
+        backgroundColor: bgColor,
       });
 
-      // Try Web Share API with file (works on iOS Safari, Android Chrome)
+      restoreVars();
+      restoreVars = null;
+
+      const firstSentence = book.matchReason.split('. ')[0] + '.';
+      const text = `I got "${book.title}" on the Culture novel quiz.\n\n${firstSentence}`;
+
+      // Try native share with image file + link
       if (navigator.share && navigator.canShare) {
         const blob = await fetch(dataUrl).then((r) => r.blob());
         const file = new File([blob], 'culture-result.png', { type: 'image/png' });
-        if (navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file], title: 'My Culture novel result' });
-          setState('image-shared');
+        const shareData = {
+          files: [file],
+          title: 'My Culture novel result',
+          text,
+          url: shareUrl,
+        };
+        if (navigator.canShare(shareData)) {
+          await navigator.share(shareData);
+          setState('shared');
           setTimeout(() => setState('idle'), 2000);
           return;
         }
       }
 
-      // Fallback: trigger download
-      const link = document.createElement('a');
-      link.download = 'culture-result.png';
-      link.href = dataUrl;
-      link.click();
-      setState('downloaded');
+      // Fallback for desktop: copy link (no silent download)
+      await navigator.clipboard.writeText(`${text}\n\n${shareUrl}`);
+      setState('copied');
       setTimeout(() => setState('idle'), 2000);
     } catch (err) {
-      console.error('Image capture failed:', err);
+      if (restoreVars) restoreVars();
+      // User cancelled the share sheet — not a real error
+      if (err?.name === 'AbortError') {
+        setState('idle');
+        return;
+      }
+      console.error('Image share failed:', err);
       setState('failed');
       setTimeout(() => setState('idle'), 2500);
     }
@@ -113,13 +173,13 @@ function ShareButton({ book, scores, imageRef }) {
   const imageLabel =
     state === 'generating'
       ? 'Generating...'
-      : state === 'image-shared'
+      : state === 'shared'
       ? 'Shared'
-      : state === 'downloaded'
-      ? 'Downloaded'
+      : state === 'copied'
+      ? 'Copied'
       : state === 'failed'
       ? 'Failed'
-      : 'Download image';
+      : 'Share image';
 
   return (
     <div className="result-radar-actions">
@@ -161,12 +221,12 @@ export default function ResultScreen({ scores, topResult, onRestart }) {
     <div className="screen result-screen">
       <div className="result-inner">
 
-        {/* ── Capture target: card + radar ── */}
+        {/* Capture target: card + radar */}
         <div
           ref={imageRef}
           className="share-card-target"
           style={{
-            backgroundColor: 'var(--bg)',
+            backgroundColor: 'var(--bg-base)',
             padding: '24px',
             borderRadius: '16px',
           }}
@@ -194,7 +254,6 @@ export default function ResultScreen({ scores, topResult, onRestart }) {
             <RadarChart scores={scores} />
           </div>
         </div>
-        {/* ── end capture target ── */}
 
         <div className="scores-section">
           <p className="scores-heading">All scores</p>
