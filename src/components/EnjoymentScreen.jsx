@@ -22,6 +22,9 @@ export default function EnjoymentScreen({ onAnswer }) {
             Certainly not my cup of tea...
           </button>
         </div>
+        <p style={{ marginTop: '24px', fontSize: '0.78rem', opacity: 0.45, fontStyle: 'italic', textAlign: 'center', maxWidth: '420px', margin: '24px auto 0' }}>
+          The Number After Which There Is No Number will factor your answer into calculations you are not equipped to follow.
+        </p>
       </div>
     </div>
   );
