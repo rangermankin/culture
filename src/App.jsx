@@ -12,6 +12,7 @@ export default function App() {
     topResult,
     question,
     totalQuestions,
+    isViewingShared,
     startQuiz,
     selectAnswer,
     restart,
@@ -34,6 +35,8 @@ export default function App() {
           scores={scores}
           topResult={topResult}
           onRestart={restart}
+          isViewingShared={isViewingShared}
+          onTakeQuiz={restart}
         />
       )}
     </div>
